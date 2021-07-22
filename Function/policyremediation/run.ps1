@@ -12,7 +12,7 @@ if ($Timer.IsPastDue) {
 
 $tenantId = $env:ARM_TENANT_ID
 Set-AzContext -Tenantid $tenantId
-$ManagementGroupName = "root"
+$ManagementGroupName = $env:MG_NAME
 
 
 Write-Host "Getting noncompliant policy assignments for" $ManagementGroupName "..."
