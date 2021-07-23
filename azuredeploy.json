@@ -27,7 +27,8 @@
         "FunctionName": "[concat(toLower(parameters('FunctionName')), uniqueString(resourceGroup().id))]",
         "StorageAccountName": "[concat(substring(variables('FunctionName'), 0, 20), 'sa')]",
         "KeyVaultName": "[concat(substring(variables('FunctionName'), 0, 20), 'kv')]",
-        "StorageSuffix": "[environment().suffixes.storage]"
+        "StorageSuffix": "[environment().suffixes.storage]",
+        "roleDefinitionIdContributor" : "b24988ac-6180-42a0-ab88-20f7382dd24c"
     },
     "resources": [
         {
@@ -137,6 +138,15 @@
                     }
                 }
             ]
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[guid(resourceGroup().id)]",
+            "properties": {
+                "roleDefinitionId": "[tenantResourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefinitionIdContributor'))]",
+                "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('FunctionName')),'2019-08-01', 'full').identity.principalId]"
+            }
         }
     ]
 }
