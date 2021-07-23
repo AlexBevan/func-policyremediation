@@ -9,9 +9,6 @@ if ($Timer.IsPastDue) {
     Write-Host "PowerShell timer is running late!"
 }
 
-
-$tenantId = $env:ARM_TENANT_ID
-Set-AzContext -Tenantid $tenantId
 $ManagementGroupName = $env:MG_NAME
 
 
