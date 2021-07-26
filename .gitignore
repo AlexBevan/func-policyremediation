@@ -7,3 +7,4 @@ __azurite*
 Function/__blobstorage__/*
 Function/__queuestorage__/*
 Function/local.settings.json
+terraform/example/.terraform/*

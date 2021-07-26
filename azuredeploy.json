@@ -9,14 +9,14 @@
                 "description": "Specifies the name of the Function App."
             }
         },
-        "MG_NAME": {      
+        "MG_NAME": {
             "type": "String",
             "metadata": {
                 "description": "Specifies the name of the management group to target."
             }
         },
         "FunctionSchedule": {
-            "defaultValue": "0 */10 * * * *",
+            "defaultValue": "0 */2 * * *",
             "type": "String",
             "metadata": {
                 "description": "For a `TimerTrigger` to work, you provide a schedule in the form of a [cron expression](https://en.wikipedia.org/wiki/Cron#CRON_expression)(See the link for full details). A cron expression is a string with 6 separate expressions which represent a given schedule via patterns. The pattern we use to represent every 1 hour is `0 0 * * * *`. This, in plain text, means: When seconds is equal to 0, minutes is divisible by 5, for any hour, day of the month, month, day of the week, or year"
@@ -28,7 +28,7 @@
         "StorageAccountName": "[concat(substring(variables('FunctionName'), 0, 20), 'sa')]",
         "KeyVaultName": "[concat(substring(variables('FunctionName'), 0, 20), 'kv')]",
         "StorageSuffix": "[environment().suffixes.storage]",
-        "roleDefinitionIdContributor" : "b24988ac-6180-42a0-ab88-20f7382dd24c"
+        "roleDefinitionIdContributor": "b24988ac-6180-42a0-ab88-20f7382dd24c"
     },
     "resources": [
         {
@@ -133,24 +133,41 @@
                         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[concat('DefaultEndpointsProtocol=https;AccountName=', toLower(variables('StorageAccountName')),';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')), '2019-06-01').keys[0].value, ';EndpointSuffix=',toLower(variables('StorageSuffix')))]",
                         "WEBSITE_CONTENTSHARE": "[toLower(variables('FunctionName'))]",
                         "Schedule": "[parameters('FunctionSchedule')]",
-                        "MG_NAME" : "[parameters('MG_NAME')]",
-                        "WEBSITE_RUN_FROM_PACKAGE": "https://github.com/AlexBevan/func-policyremediation/blob/main/func-policyremediation.zip?raw=true"
+                        "MG_NAME": "[parameters('MG_NAME')]",
+                        "WEBSITE_RUN_FROM_PACKAGE": "https://alexbevan.github.io/func-policyremediation/func-policyremediation.zip"
+                    }
+                },
+                {
+                    "type": "Microsoft.Resources/deployments",
+                    "name": "[concat('RoleAssignment-', variables('FunctionName'))]",
+                    "apiVersion": "2020-06-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('FunctionName'))]"
+                    ],
+                    "properties": {
+                        "mode": "Incremental",
+                        "template": {
+                            "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                            "contentVersion": "1.0.0.0",
+                            "resources": [
+                                {
+                                    "apiVersion": "2020-04-01-preview",
+                                    "type": "Microsoft.Authorization/roleAssignments",
+                                    "name": "[concat(parameters('storageAccountName'), '/Microsoft.Authorization/', guid(subscription().subscriptionId, parameters('logicAppName')))]",
+                                    "dependsOn": [
+                                        "[resourceId('Microsoft.Web/sites', variables('FunctionName'))]"
+                                    ],
+                                    "properties": {
+                                        "roleDefinitionId": "[tenantResourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefinitionIdContributor'))]",
+                                        "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('FunctionName')),'2019-08-01', 'full').identity.principalId]",
+                                        "scope": "/"
+                                    }
+                                }
+                            ]
+                        }
                     }
                 }
             ]
-        },
-        {
-            "type": "Microsoft.Authorization/roleAssignments",
-            "apiVersion": "2020-04-01-preview",
-            "name": "[guid(resourceGroup().id)]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('FunctionName'))]"
-            ],
-            "properties": {
-                "roleDefinitionId": "[tenantResourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefinitionIdContributor'))]",
-                "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('FunctionName')),'2019-08-01', 'full').identity.principalId]",
-                "scope": "/"
-            }
         }
     ]
 }
