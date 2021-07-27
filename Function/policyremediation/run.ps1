@@ -29,7 +29,7 @@ foreach ($policy in $policies) {
 $policyAssignmentIds = ($policyAssignmentIds | Select-Object -Unique)
 foreach ($policyAssignmentId in $policyAssignmentIds) {
     if (!$policyAssignmentId.EndsWith('securitycenterbuiltin') ) { # security center built in polices don't support this method
-        .\Trigger-PolicyInitiativeRemediation.ps1 -ManagementGroup -ManagementGroupId $ManagementGroupName -PolicyAssignmentId  $policyAssignmentId -Force
+        & "$PSScriptRoot\Trigger-PolicyInitiativeRemediation.ps1" -ManagementGroup -ManagementGroupId $ManagementGroupName -PolicyAssignmentId  $policyAssignmentId -Force
     }
 }
     
